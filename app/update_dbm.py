@@ -23,7 +23,7 @@ def load_json(filename):
     with open(filename, "r") as file_obj:
         return json.loads(file_obj.read())
 
-def get_wow_addon_location(conf_file_name):
+def get_classic_wow_addon_location(conf_file_name):
     config = configparser.ConfigParser()
     config.read(conf_file_name)
     return config["Classic"]["wow_install_dir"]
@@ -32,7 +32,7 @@ def create_download_file_path(filename, file_path):
     return os.path.join(file_path, filename)
 
 def main():
-    wow_install_dir = get_wow_addon_location("wow_install.conf")
+    wow_install_dir = get_classic_wow_addon_location("wow_install.conf")
     json_contents = load_json("addons.json")
     for addon_name, repo_url in json_contents.items():
         dl_url = get_latest_release_dl_url_from_repo_url(repo_url)

@@ -1,1 +1,5 @@
 env/
+.docker_image_id
+.vscode
+__pycache__
+.*
