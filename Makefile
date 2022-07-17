@@ -1,3 +1,4 @@
+#TODO: Pass in user permissions into test docker container
 out=out/
 test_dir=$(out)
 test_docker_image_name=test_wow_addon_updater
