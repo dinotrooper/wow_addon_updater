@@ -4,4 +4,4 @@
 3. Install required libraries: `pip install -r requirements.txt`
 4. Find the path to your WoW addons.
 5. Put your path in wow_install.conf.
-6. Run the script: `python update_addons.py`
+6. Run the script: `python app/update_dbm.py`
