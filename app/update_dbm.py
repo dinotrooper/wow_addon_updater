@@ -44,15 +44,12 @@ class GithubWowAddonUpdater:
         os.remove(dl_file_path)
 
     def get_latest_release_json_from_repo(self, url):
-        headers = {"accept":"application/vnd.github.v3+json"}
         user, repo = self.get_user_repo_from_url(url)
+        token = self.get_github_token_from_file()
+        headers = {"accept":"application/vnd.github.v3+json", "Authorization":f"token {token}"}
         api_url = f"https://api.github.com/repos/{user}/{repo}/releases"
         response = requests.get(api_url, headers=headers)
         return json.loads(response.content)[0]
-
-    @staticmethod
-    def get_addon_version_from_release_json(release_json):
-        return release_json.get("tag_name")
 
     @staticmethod
     def get_user_repo_from_url(url):
@@ -63,6 +60,23 @@ class GithubWowAddonUpdater:
         user = match.group(1)
         repo = match.group(2)
         return user, repo 
+
+    def get_github_token_from_file(self):
+        token_file_path = "github_token"
+        try:
+            with open(token_file_path, "r") as file:
+                return file.read().strip()
+        except FileNotFoundError as error:
+            text = f"""
+Could not file named {token_file_path}. Please create this file and put your Github token here.
+More infomation can be found here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token 
+            """
+            print(text)
+            raise error
+
+    @staticmethod
+    def get_addon_version_from_release_json(release_json):
+        return release_json.get("tag_name")
 
     @staticmethod
     def write_json_utf8(json_obj, filepath):

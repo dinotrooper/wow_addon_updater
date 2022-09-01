@@ -61,7 +61,6 @@ class TestGithubWowAddonUpdater(TestCase):
         test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
         repo_url = "https://github.com/DeadlyBossMods/DBM-BCC"
         test_json = test_obj.get_latest_release_json_from_repo(repo_url)
-        print(json.dumps(test_json, indent=4, sort_keys=True))
         assets = test_json.get("assets")
         assert assets is not None
         first_asset = assets[0]
@@ -81,7 +80,7 @@ class TestGithubWowAddonUpdater(TestCase):
         test_json = test_obj.get_latest_release_json_from_repo(repo_url)
         print(json.dumps(test_json, indent=4, sort_keys=True))
         assets = test_json.get("assets")
-        assert len(assets) == 0 
+        assert len(assets) == 0
         zip_file_url = GithubWowAddonUpdater.get_url_from_release_json_body(test_json.get("body"))
         assert zip_file_url is not None
         assert test_obj.get_zip_file_url_from_release_json(test_json) == zip_file_url
