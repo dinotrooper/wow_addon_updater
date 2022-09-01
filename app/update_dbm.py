@@ -28,12 +28,15 @@ class GithubWowAddonUpdater:
     def update_addons_in_json(self):
         for addon_name, repo_url in self.json_contents.items():
             self.update_addon(addon_name, repo_url)
+            print(f"Done")
 
     def update_addon(self, addon_name, repo_url):
         release_info_json = self.get_latest_release_json_from_repo(repo_url)
         version = self.get_addon_version_from_release_json(release_info_json)
+        print(f"Updating {addon_name} to version {version}")
         dl_url = self.get_latest_release_dl_url_from_release_json(release_info_json)
         dl_filename = addon_name + "_" + self.get_file_name_from_url(dl_url) 
+        print(f"dl_filename = {dl_filename}")
         dl_file_path = self.create_download_file_path(dl_filename, self.wow_install_dir)
         self.download_file(dl_url, dl_file_path)
         self.unzip_file(dl_file_path, self.wow_install_dir)
@@ -53,7 +56,7 @@ class GithubWowAddonUpdater:
 
     @staticmethod
     def get_user_repo_from_url(url):
-        pattern = r'https:\/\/github.com\/(\w+)\/(.+)'
+        pattern = r'https:\/\/github.com\/([a-zA-z\-]+)/(.+)'
         match = re.search(pattern, url)
         if not match:
             return None
@@ -64,14 +67,23 @@ class GithubWowAddonUpdater:
     @staticmethod
     def write_json_utf8(json_obj, filepath):
         with open(filepath, mode="w+", encoding="utf-8") as file_obj:
-            json.dump(json_obj, file_obj)
+            json.dump(json_obj, file_obj, indent=4, sort_keys=True)
 
     def get_latest_release_dl_url_from_release_json(self, release_info_json):
         return self.get_zip_file_url_from_release_json(release_info_json)
 
-    @staticmethod
-    def get_zip_file_url_from_release_json(release_json):
+    def get_zip_file_url_from_release_json(self, release_json):
+        if len(release_json["assets"]) == 0:
+            return self.get_url_from_release_json_body(release_json["body"])
         return release_json["assets"][0]["browser_download_url"]
+
+    @staticmethod
+    def get_url_from_release_json_body(body):
+        pattern = r'.+(https:\/\/github.com\/.+\.zip).+'
+        match = re.search(pattern, body)
+        if not match:
+            return None
+        return match.group(1)
 
     @staticmethod
     def get_file_name_from_url(url):

@@ -5,6 +5,7 @@ import os
 import zipfile
 from unittest import TestCase
 import json
+from parameterized import parameterized
 
 class TestGithubWowAddonUpdater(TestCase):
 
@@ -45,10 +46,16 @@ class TestGithubWowAddonUpdater(TestCase):
         conf_file_name = os.path.join("/test/", "test.conf")
         assert GithubWowAddonUpdater.get_classic_wow_addon_location(conf_file_name) == "/path/to/wow/dir"
 
-    def test_get_user_repo_from_url(self):
-        url = "https://github.com/DeadlyBossMods/DBM-Classic"
-        assert ("DeadlyBossMods", "DBM-Classic") == GithubWowAddonUpdater.get_user_repo_from_url(url)
-        assert None == GithubWowAddonUpdater.get_user_repo_from_url("bad.url.com")
+    @parameterized.expand(
+            [
+                ("https://github.com/DeadlyBossMods/DBM-Classic",
+                    ("DeadlyBossMods", "DBM-Classic")),
+                ("https://github.com/max-ri/Guidelime",
+                    ("max-ri", "Guidelime")),
+                ("bad.url.com", None),
+            ])
+    def test_get_user_repo_from_url(self, url, expected):
+        assert expected  == GithubWowAddonUpdater.get_user_repo_from_url(url)
 
     def test_get_latest_release_json_from_repo(self):
         test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
@@ -63,6 +70,22 @@ class TestGithubWowAddonUpdater(TestCase):
         assert zip_file_url is not None
         assert test_obj.get_zip_file_url_from_release_json(test_json) == zip_file_url
 
+    def test_get_url_from_release_body(self):
+        test_url = "https://github.com/stuff/more_stuff/stuff.zip"
+        body = f"Fixed stuff\r\n[stuff.zip]({test_url})\r\n"
+        assert GithubWowAddonUpdater.get_url_from_release_json_body(body) == test_url
+
+    def test_get_zip_file_with_no_assets(self):
+        test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
+        repo_url = "https://github.com/Vysci/LFG-Bulletin-Board"
+        test_json = test_obj.get_latest_release_json_from_repo(repo_url)
+        print(json.dumps(test_json, indent=4, sort_keys=True))
+        assets = test_json.get("assets")
+        assert len(assets) == 0 
+        zip_file_url = GithubWowAddonUpdater.get_url_from_release_json_body(test_json.get("body"))
+        assert zip_file_url is not None
+        assert test_obj.get_zip_file_url_from_release_json(test_json) == zip_file_url
+
     def test_write_json_utf8(self):
         test_json_fp = "/test/test_write_json_utf8"
         GithubWowAddonUpdater.write_json_utf8({"hello there!":"general kenobi"}, test_json_fp)
@@ -72,12 +95,11 @@ class TestGithubWowAddonUpdater(TestCase):
             assert test_json_obj.get("hello there!") is not None
         os.remove(test_json_fp)
 
-
     def test_get_addon_version_from_release_json(self):
         with open("test/test_release.json", "r") as file_obj:
             test_release_json = json.load(file_obj)
         version = GithubWowAddonUpdater.get_addon_version_from_release_json(test_release_json)
-        assert version == "2.5.40"
+        assert version == "2.5.42"
 
     def test_write_version(self):
         addon_name = "test_addon"
