@@ -1,6 +1,7 @@
 {
-    "dbm":"https://github.com/DeadlyBossMods/DBM-BCC",
+    "dbm":"https://github.com/DeadlyBossMods/DBM-WoTLKC",
     "questie":"https://github.com/Questie/Questie",
     "guidelime":"https://github.com/max-ri/Guidelime",
-    "lfg_board":"https://github.com/Vysci/LFG-Bulletin-Board"
+    "lfg_board":"https://github.com/Vysci/LFG-Bulletin-Board",
+    "kwiw_ram":"https://github.com/DeadlyBossMods/DBM-BCC"
 }

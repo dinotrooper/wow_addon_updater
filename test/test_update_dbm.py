@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../app")
 from update_dbm import GithubWowAddonUpdater
+import pytest
 import os
 import zipfile
 from unittest import TestCase
@@ -74,6 +75,7 @@ class TestGithubWowAddonUpdater(TestCase):
         body = f"Fixed stuff\r\n[stuff.zip]({test_url})\r\n"
         assert GithubWowAddonUpdater.get_url_from_release_json_body(body) == test_url
 
+    @pytest.mark.skip(reason="11/2/2022 Vysci put zip folder into assets instead of body")
     def test_get_zip_file_with_no_assets(self):
         test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
         repo_url = "https://github.com/Vysci/LFG-Bulletin-Board"
@@ -95,7 +97,7 @@ class TestGithubWowAddonUpdater(TestCase):
         os.remove(test_json_fp)
 
     def test_get_addon_version_from_release_json(self):
-        with open("test/test_release.json", "r") as file_obj:
+        with open("/test/test_release.json", "r") as file_obj:
             test_release_json = json.load(file_obj)
         version = GithubWowAddonUpdater.get_addon_version_from_release_json(test_release_json)
         assert version == "2.5.42"
