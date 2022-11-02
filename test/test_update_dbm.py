@@ -38,13 +38,13 @@ class TestGithubWowAddonUpdater(TestCase):
         os.remove(test_text_file_path)
 
     def test_load_json(self):
-        json_file_name = os.path.join("/test/", "test.json")
+        json_file_name = os.path.join("/test/", "dummy.json")
         json = GithubWowAddonUpdater.load_json(json_file_name)
         assert len(json) == 1
         assert json["hello there!"] == "general kenobi..."
 
     def test_get_classic_wow_addon_location(self):
-        conf_file_name = os.path.join("/test/", "test.conf")
+        conf_file_name = os.path.join("/test/", "dummy.conf")
         assert GithubWowAddonUpdater.get_classic_wow_addon_location(conf_file_name) == "/path/to/wow/dir"
 
     @parameterized.expand(
@@ -59,7 +59,7 @@ class TestGithubWowAddonUpdater(TestCase):
         assert expected  == GithubWowAddonUpdater.get_user_repo_from_url(url)
 
     def test_get_latest_release_json_from_repo(self):
-        test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
+        test_obj = GithubWowAddonUpdater("/test/dummy.conf", "/test/dummy.json")
         repo_url = "https://github.com/DeadlyBossMods/DBM-BCC"
         test_json = test_obj.get_latest_release_json_from_repo(repo_url)
         assets = test_json.get("assets")
@@ -77,7 +77,7 @@ class TestGithubWowAddonUpdater(TestCase):
 
     @pytest.mark.skip(reason="11/2/2022 Vysci put zip folder into assets instead of body")
     def test_get_zip_file_with_no_assets(self):
-        test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
+        test_obj = GithubWowAddonUpdater("/test/dummy.conf", "/test/dummy.json")
         repo_url = "https://github.com/Vysci/LFG-Bulletin-Board"
         test_json = test_obj.get_latest_release_json_from_repo(repo_url)
         print(json.dumps(test_json, indent=4, sort_keys=True))
@@ -97,7 +97,7 @@ class TestGithubWowAddonUpdater(TestCase):
         os.remove(test_json_fp)
 
     def test_get_addon_version_from_release_json(self):
-        with open("/test/test_release.json", "r") as file_obj:
+        with open("/test/dummy_release.json", "r") as file_obj:
             test_release_json = json.load(file_obj)
         version = GithubWowAddonUpdater.get_addon_version_from_release_json(test_release_json)
         assert version == "2.5.42"
@@ -107,7 +107,7 @@ class TestGithubWowAddonUpdater(TestCase):
         test_dir = "/test/"
         test_fp = os.path.join(test_dir, f"{addon_name}_version")
         version = "2.5.40"
-        test_obj = GithubWowAddonUpdater("/test/test.conf", "/test/test.json")
+        test_obj = GithubWowAddonUpdater("/test/dummy.conf", "/test/dummy.json")
         test_obj.write_version_to_addon_dir(version, test_dir, addon_name)
         with open(test_fp, "r") as file_obj:
             assert file_obj.read() == version
