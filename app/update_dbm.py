@@ -35,8 +35,7 @@ class GithubWowAddonUpdater:
         version = self.get_addon_version_from_release_json(release_info_json)
         print(f"Updating {addon_name} to version {version}")
         dl_url = self.get_latest_release_dl_url_from_release_json(release_info_json)
-        dl_filename = addon_name + "_" + self.get_file_name_from_url(dl_url) 
-        print(f"dl_filename = {dl_filename}")
+        dl_filename = addon_name + "_" + self.get_file_name_from_url(dl_url)
         dl_file_path = self.create_download_file_path(dl_filename, self.wow_install_dir)
         self.download_file(dl_url, dl_file_path)
         self.unzip_file(dl_file_path, self.wow_install_dir)
@@ -59,7 +58,7 @@ class GithubWowAddonUpdater:
             return None
         user = match.group(1)
         repo = match.group(2)
-        return user, repo 
+        return user, repo
 
     def get_github_token_from_file(self):
         token_file_path = "github_token"
@@ -69,7 +68,7 @@ class GithubWowAddonUpdater:
         except FileNotFoundError as error:
             text = f"""
 Could not file named {token_file_path}. Please create this file and put your Github token here.
-More infomation can be found here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token 
+More infomation can be found here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
             """
             print(text)
             raise error
