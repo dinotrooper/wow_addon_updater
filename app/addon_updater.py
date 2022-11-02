@@ -1,9 +1,10 @@
-from cgitb import text
 import configparser
 import os
 import re
 import json
 from wow_addons import GithubWowAddon
+
+# TODO: Make appropriate functions private
 
 class WowAddonUpdater:
     supported_sites = [
@@ -11,12 +12,24 @@ class WowAddonUpdater:
     ]
     wow_install_dir = None
     addons = []
-    addon_versions = {}
-    addon_version_name = "addon_version.json"
-    def __init__(self, wow_install_conf, text_file):
+    def __init__(self, wow_install_conf, text_file, token_file_path="github_token"):
+        self.token = self.get_github_token_from_file(token_file_path)
         self.wow_install_dir = self.get_classic_wow_addon_location(wow_install_conf)
         self.load_addons_from_text_file(text_file)
-        self.get_addon_versions()
+        self.update_addons()
+
+    def get_github_token_from_file(self):
+        token_file_path = "github_token"
+        try:
+            with open(token_file_path, "r") as file:
+                return file.read().strip()
+        except FileNotFoundError as error:
+            text = f"""
+Could not file named {token_file_path}. Please create this file and put your Github token here.
+More infomation can be found here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+            """
+            print(text)
+            raise error
 
     @staticmethod
     def get_classic_wow_addon_location(conf_file_name):
@@ -40,7 +53,7 @@ class WowAddonUpdater:
         site = self.get_site_from_url(addon_url)
         if site not in self.supported_sites:
             raise ValueError("Site {site} not supported.")
-        if site == "github": 
+        if site == "github":
             return GithubWowAddon(addon_url)
 
     @staticmethod
@@ -51,13 +64,6 @@ class WowAddonUpdater:
             return None
         return match.group(1).lower()
 
-    def get_addon_versions(self):
-        addon_version_json_fp = self.get_addon_version_json_fp()
-        self.addon_versions = self.read_json_file(addon_version_json_fp)
-
-    def get_addon_version_json_fp(self):
-        return os.path.join(self.wow_install_dir, self.addon_version_name)
-
     def read_json_file(self, file_path):
         if not os.path.exists(file_path):
             return {}
@@ -66,28 +72,7 @@ class WowAddonUpdater:
 
     def update_addons(self):
         for addon in self.addons():
-            if not self.does_addon_need_updating(addon):
-                continue
-            self.print_addon_update_message(addon)
             addon.update(self.wow_install_dir)
-            self.addon_versions[addon.name] = addon.newest_version
-        self.update_addon_version_json()
-
-    def does_addon_need_updating(self, addon):
-        local_version = self.addon_versions.get(addon.name)
-        if local_version is None:
-            return True
-        if addon.newest_version != local_version: 
-            return True
-        return False
-
-    def print_addon_update_message(self, addon):
-        local_version = self.addon_versions.get(addon.name)
-        print(f"Updating {addon.name} from version {local_version} to {addon.newest_version}")
-
-    def update_addon_version_json(self):
-        addon_version_json_fp = self.get_addon_version_json_fp()
-        self.write_json_utf8(self.addon_versions, addon_version_json_fp)
 
     @staticmethod
     def write_json_utf8(json_obj, filepath):

@@ -4,3 +4,4 @@ env/
 __pycache__
 .*
 .out/
+github_token
