@@ -18,8 +18,7 @@ class WowAddonUpdater:
         self.load_addons_from_text_file(text_file)
         self.update_addons()
 
-    def get_github_token_from_file(self):
-        token_file_path = "github_token"
+    def get_github_token_from_file(self, token_file_path):
         try:
             with open(token_file_path, "r") as file:
                 return file.read().strip()
@@ -78,3 +77,6 @@ More infomation can be found here: https://docs.github.com/en/authentication/kee
     def write_json_utf8(json_obj, filepath):
         with open(filepath, mode="w+", encoding="utf-8") as file_obj:
             json.dump(json_obj, file_obj)
+
+if __name__ == "__main__":
+    WowAddonUpdater()
