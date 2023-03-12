@@ -1,1 +1,8 @@
-https://github.com/DeadlyBossMods/DBM-BCC
+https://github.com/DeadlyBossMods/DBM-WoTLKC
+https://github.com/Questie/Questie
+https://github.com/papa-smurf/Gargul
+https://github.com/sfmict/HidingBar
+https://github.com/Tercioo/Plater-Nameplates
+https://github.com/Ludovicus-Maior/WoW-Pro-Guides
+https://github.com/WeakAuras/WeakAuras2
+https://github.com/Hoizame/AtlasLootClassic

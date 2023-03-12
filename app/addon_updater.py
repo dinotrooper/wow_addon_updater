@@ -2,7 +2,7 @@ import configparser
 import os
 import re
 import json
-from wow_addons import GithubWowAddon
+from app.wow_addons import GithubWowAddon
 
 # TODO: Make appropriate functions private
 
@@ -12,13 +12,17 @@ class WowAddonUpdater:
     ]
     wow_install_dir = None
     addons = []
-    def __init__(self, wow_install_conf, text_file, token_file_path="github_token"):
-        self.token = self.get_github_token_from_file(token_file_path)
-        self.wow_install_dir = self.get_classic_wow_addon_location(wow_install_conf)
-        self.load_addons_from_text_file(text_file)
+    def __init__(self, wow_install_conf, app_json, token_file_path="github_token"):
+        self.setup(wow_install_conf, app_json, token_file_path)
+
+    def setup(self, wow_install_conf, app_json, token_file_path):
+        """ Wrapper for init - easier to unit test """
+        self.token = self._get_github_token_from_file(token_file_path)
+        self.wow_install_dir = self._get_classic_wow_addon_location(wow_install_conf)
+        self.load_addons_from_text_file(app_json)
         self.update_addons()
 
-    def get_github_token_from_file(self, token_file_path):
+    def _get_github_token_from_file(self, token_file_path):
         try:
             with open(token_file_path, "r") as file:
                 return file.read().strip()
@@ -31,17 +35,15 @@ More infomation can be found here: https://docs.github.com/en/authentication/kee
             raise error
 
     @staticmethod
-    def get_classic_wow_addon_location(conf_file_name):
+    def _get_classic_wow_addon_location(conf_file_name):
         if not os.path.exists(conf_file_name):
-            raise ValueError(f"File {conf_file_name} does not exist.")
+            raise FileNotFoundError(conf_file_name)
         config = configparser.ConfigParser()
         config.read(conf_file_name)
         return config["Classic"]["wow_install_dir"]
 
-    def load_addons_from_text_file(self, text_file):
-        if not os.path.exists(text_file):
-            raise ValueError(f"File {text_file} does not exist.")
-        with open(text_file, "r") as file_obj:
+    def load_addons_from_text_file(self, json_path):
+        with open(json_path, "r") as file_obj:
             file_contents = file_obj.readlines()
             for url in file_contents:
                 if not url:

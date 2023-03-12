@@ -1,30 +1,17 @@
 """ Tests for WoW Addons """
-from unittest import TestCase
 from unittest.mock import patch, MagicMock
 import os
 import json
 import zipfile
-import pytest
 from app.wow_addons import GithubWowAddon
+from test_common import TestGithubToken
 
-class TestGithubWowAddonUpdater(TestCase):
+class TestGithubWowAddon(TestGithubToken):
     """ Tests for Github WoW addons. """
     def setUp(self):
         url = "https://github.com/DeadlyBossMods/DBM-BCC"
         self.token = self._get_github_token_from_file()
         self.gh_wow_addon = GithubWowAddon(url, self.token)
-
-    def _get_github_token_from_file(self, token_file_path = "github_token"):
-        try:
-            with open(token_file_path, "r", encoding="utf-8") as file:
-                return file.read().strip()
-        except FileNotFoundError as error:
-            text = f"""
-Could not file named {token_file_path}. Please create this file and put your Github token here.
-More infomation can be found here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
-            """
-            print(text)
-            raise error
 
     def test_get_user_repo_from_url(self):
         url = "https://github.com/DeadlyBossMods/DBM-Classic"

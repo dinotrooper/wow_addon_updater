@@ -1,6 +1,10 @@
 {
     "dbm":"https://github.com/DeadlyBossMods/DBM-WoTLKC",
     "questie":"https://github.com/Questie/Questie",
-    "guidelime":"https://github.com/max-ri/Guidelime",
-    "lfg_board":"https://github.com/Vysci/LFG-Bulletin-Board"
+    "gargul":"https://github.com/papa-smurf/Gargul",
+    "hiding_bar":"https://github.com/sfmict/HidingBar",
+    "plater":"https://github.com/Tercioo/Plater-Nameplates",
+    "wow_pro":"https://github.com/Ludovicus-Maior/WoW-Pro-Guides",
+    "weak_auras":"https://github.com/WeakAuras/WeakAuras2",
+    "atlas-loot":"https://github.com/Hoizame/AtlasLootClassic"
 }
