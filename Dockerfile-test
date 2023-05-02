@@ -3,6 +3,7 @@ FROM python:3
 COPY requirements.txt ./
 COPY pytest.ini ./
 RUN pip install --no-cache-dir -r requirements.txt
+COPY github_token /
 
 WORKDIR /test/
 
