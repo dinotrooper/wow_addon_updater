@@ -1,7 +1,10 @@
 FROM python:3
 
 COPY requirements.txt ./
+COPY pytest.ini ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY github_token /
 
-CMD ["/bin/bash", "-c", "coverage run --source=/app/ -m pytest -v /test/ && coverage report --show-missing"]
+WORKDIR /test/
+
+CMD ["/bin/bash", "-c", "coverage run --source=/app/ -m pytest -v && coverage report --show-missing"]
