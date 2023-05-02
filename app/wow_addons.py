@@ -5,6 +5,7 @@ import os
 import re
 from zipfile import ZipFile
 import requests
+from time import sleep
 
 class WowAddon:
     """ Abstract class that represents any WoW Addon. """
@@ -23,23 +24,28 @@ class GithubWowAddon(WowAddon):
     """ A WoW Addon hosted on Github. Needs a Github token. """
     def __init__(self, url, token, versions_dir="addon_versions"):
         user, addon_name = self._get_user_repo_from_url(url)
-        self.versions_dir = versions_dir
-        self.version_file = os.path.join(versions_dir, addon_name)
+        self._create_version_dir(versions_dir)
+        self.version_file = os.path.join(self.versions_dir, addon_name)
+        self.current_version = self._get_current_version()
         self.user = user
         self.addon_name = addon_name
         self.token = token
-        self.versions_dir = versions_dir
-        self._get_current_version()
 
     @staticmethod
     def _get_user_repo_from_url(url):
-        pattern = r'https:\/\/github.com\/(\w+)\/(.+)'
+        pattern = r'https:\/\/github\.com\/(.+)\/(.+)'
         match = re.search(pattern, url)
         if not match:
             return None
         user = match.group(1)
         repo = match.group(2)
         return user, repo
+
+    def _create_version_dir(self, versions_dir):
+        curr_dir = os.path.dirname(__file__)
+        self.versions_dir = os.path.join(curr_dir, versions_dir)
+        if not os.path.exists(self.versions_dir):
+            os.mkdir(self.versions_dir)
 
     def _get_current_version(self):
         if not os.path.exists(self.version_file):
@@ -54,6 +60,7 @@ class GithubWowAddon(WowAddon):
     def update(self, wow_install_dir):
         """ Update an addon hosted on Github if they have a new release. """
         if not self._does_addon_need_updating():
+            self._print_skip_message()
             return
         self._print_update_message()
         dl_url = self._get_zip_file_url_from_release_json(self.release_json)
@@ -72,17 +79,30 @@ class GithubWowAddon(WowAddon):
             return True
         return False
 
+    def _print_skip_message(self):
+        print(f"Skipping {self.addon_name}; addon's current version {self.current_version} matches newest version {self.newest_version}")
+
     def _check_for_new_version(self):
         self.release_json = self._get_latest_release_json_from_repo(self.token, self.user, self.addon_name)
-        print(self.release_json)
         self.newest_version = self._get_newest_version()
 
-    @staticmethod
-    def _get_latest_release_json_from_repo(token, user, addon_name):
+    def _get_latest_release_json_from_repo(self, token, user, addon_name):
         headers = {"accept":"application/vnd.github.v3+json", "Authorization":f"token {token}"}
         api_url = f"https://api.github.com/repos/{user}/{addon_name}/releases"
-        response = requests.get(api_url, headers=headers, timeout=60)
+        response = self.get_response_with_retries(api_url, headers, 60)
         return json.loads(response.content)[0]
+
+    @staticmethod
+    def get_response_with_retries(api_url, headers, timeout):
+        max_retries = 5
+        num_retries = 0
+        try:
+            return requests.get(api_url, headers=headers, timeout=timeout)
+        except requests.exceptions.ConnectionError as error:
+            if num_retries > max_retries:
+                raise error
+            sleep(.5 + num_retries)
+            num_retries += 1
 
     def _get_newest_version(self):
         return self.release_json.get("tag_name")
@@ -92,6 +112,10 @@ class GithubWowAddon(WowAddon):
 
     @staticmethod
     def _get_zip_file_url_from_release_json(release_json):
+        assets = release_json["assets"]
+        for asset in assets:
+            if ".zip" in asset["name"]:
+                return asset["browser_download_url"]
         return release_json["assets"][0]["browser_download_url"]
 
     @staticmethod
@@ -116,8 +140,6 @@ class GithubWowAddon(WowAddon):
             zip_obj.extractall(output_dir)
 
     def _update_current_version(self):
-        if not os.path.exists(self.versions_dir):
-            os.mkdir(self.versions_dir)
         self._write_utf8(self.version_file, self.newest_version)
         self.current_version = self.newest_version
 

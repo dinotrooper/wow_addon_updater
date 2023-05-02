@@ -2,7 +2,8 @@ import configparser
 import os
 import re
 import json
-from app.wow_addons import GithubWowAddon
+from argparse import ArgumentParser
+from wow_addons import GithubWowAddon
 
 # TODO: Make appropriate functions private
 
@@ -53,17 +54,18 @@ More infomation can be found here: https://docs.github.com/en/authentication/kee
     def load_addon(self, addon_url):
         site = self.get_site_from_url(addon_url)
         if site not in self.supported_sites:
-            raise ValueError("Site {site} not supported.")
+            raise ValueError("Site %s not supported.", addon_url)
         if site == "github":
-            return GithubWowAddon(addon_url)
+            return GithubWowAddon(addon_url, self.token)
 
     @staticmethod
     def get_site_from_url(url):
-        pattern = r'[https:/]+www\.(\w+).\w+'
-        match = re.search(pattern, url)
-        if not match:
-            return None
-        return match.group(1).lower()
+        patterns = [r'https:\/\/\w+\.(\w+)\.\w+\/.+', r'https:\/\/(\w+)\.\w+\/.+']
+        for pattern in patterns:
+            match = re.search(pattern, url)
+            if match:
+                return match.group(1).lower()
+        return None
 
     def read_json_file(self, file_path):
         if not os.path.exists(file_path):
@@ -72,8 +74,11 @@ More infomation can be found here: https://docs.github.com/en/authentication/kee
             return json.load(file_obj)
 
     def update_addons(self):
-        for addon in self.addons():
-            addon.update(self.wow_install_dir)
+        for addon in self.addons:
+            try:
+                addon.update(self.wow_install_dir)
+            except Exception as error:
+                print(f"Failed to update {addon.addon_name}.\n{error}\n")
 
     @staticmethod
     def write_json_utf8(json_obj, filepath):
@@ -81,4 +86,8 @@ More infomation can be found here: https://docs.github.com/en/authentication/kee
             json.dump(json_obj, file_obj)
 
 if __name__ == "__main__":
-    WowAddonUpdater()
+    parser = ArgumentParser(prog="addon_updater.py", description="Python script to update WoW addons.")
+    parser.add_argument("wow_install_conf", help="file location of your wow installation configuration")
+    parser.add_argument("addons_json", help="file location of your addon JSON file")
+    args = parser.parse_args()
+    WowAddonUpdater(args.wow_install_conf, args.addons_json)

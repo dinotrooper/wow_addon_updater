@@ -3,7 +3,8 @@ from unittest.mock import patch, MagicMock
 import os
 import json
 import zipfile
-from app.wow_addons import GithubWowAddon
+from parameterized import parameterized
+from wow_addons import GithubWowAddon
 from test_common import TestGithubToken
 
 class TestGithubWowAddon(TestGithubToken):
@@ -13,10 +14,21 @@ class TestGithubWowAddon(TestGithubToken):
         self.token = self._get_github_token_from_file()
         self.gh_wow_addon = GithubWowAddon(url, self.token)
 
-    def test_get_user_repo_from_url(self):
-        url = "https://github.com/DeadlyBossMods/DBM-Classic"
-        assert ("DeadlyBossMods", "DBM-Classic") == GithubWowAddon._get_user_repo_from_url(url)
-        assert None is GithubWowAddon._get_user_repo_from_url("bad.url.com")
+    @parameterized.expand(
+            [
+                ("dbm", "https://github.com/DeadlyBossMods/DBM-Classic", ("DeadlyBossMods", "DBM-Classic")),
+                ("questie", "https://github.com/Questie/Questie", ("Questie", "Questie")),
+                ("gargul", "https://github.com/papa-smurf/Gargul", ("papa-smurf", "Gargul")),
+                ("hiding_bar", "https://github.com/sfmict/HidingBar", ("sfmict", "HidingBar")),
+                ("plater", "https://github.com/Tercioo/Plater-Nameplates", ("Tercioo", "Plater-Nameplates")),
+                ("wow_pro_guides", "https://github.com/Ludovicus-Maior/WoW-Pro-Guides", ("Ludovicus-Maior", "WoW-Pro-Guides")),
+                ("weak_auras", "https://github.com/WeakAuras/WeakAuras2", ("WeakAuras", "WeakAuras2")),
+                ("atlas_loot", "https://github.com/Hoizame/AtlasLootClassic", ("Hoizame", "AtlasLootClassic")),
+                ("bad", "bad.url.com", None),
+            ]
+    )
+    def test_get_user_repo_from_url(self, name, input, expected):
+        assert expected == GithubWowAddon._get_user_repo_from_url(input)
 
     def test_get_file_name_from_url(self):
         url = "http://www.award.com/home/resource/important.txt"
@@ -74,7 +86,7 @@ class TestGithubWowAddon(TestGithubToken):
             self.gh_wow_addon.version_file = test_version_file
             assert self.gh_wow_addon._get_current_version() == file_obj.read().strip()
 
-    @patch("app.wow_addons.GithubWowAddon._check_for_new_version", MagicMock())
+    @patch("wow_addons.GithubWowAddon._check_for_new_version", MagicMock())
     def test_does_addon_need_updating(self):
         self.gh_wow_addon.current_version = None
         assert self.gh_wow_addon._does_addon_need_updating()
@@ -86,22 +98,22 @@ class TestGithubWowAddon(TestGithubToken):
         assert self.gh_wow_addon._does_addon_need_updating()
 
     def test_check_for_new_version(self):
-        with patch("app.wow_addons.GithubWowAddon._get_latest_release_json_from_repo") as mock_get_json:
+        with patch("wow_addons.GithubWowAddon._get_latest_release_json_from_repo") as mock_get_json:
             test_version = "2.5.0"
             test_json = {"tag_name":test_version}
             mock_get_json.return_value=test_json
             self.gh_wow_addon._check_for_new_version()
             assert self.gh_wow_addon.newest_version == test_version
 
-    @patch("app.wow_addons.GithubWowAddon._download_file", MagicMock())
-    @patch("app.wow_addons.GithubWowAddon._unzip_file", MagicMock())
-    @patch("app.wow_addons.GithubWowAddon._write_utf8", MagicMock())
-    @patch("app.wow_addons.os", MagicMock())
+    @patch("wow_addons.GithubWowAddon._download_file", MagicMock())
+    @patch("wow_addons.GithubWowAddon._unzip_file", MagicMock())
+    @patch("wow_addons.GithubWowAddon._write_utf8", MagicMock())
+    @patch("wow_addons.os", MagicMock())
     def test_upgrade(self):
         self.gh_wow_addon.update("/test/")
 
-    @patch("app.wow_addons.GithubWowAddon._does_addon_need_updating", MagicMock(return_value=False))
-    @patch("app.wow_addons.GithubWowAddon._write_utf8")
+    @patch("wow_addons.GithubWowAddon._does_addon_need_updating", MagicMock(return_value=False))
+    @patch("wow_addons.GithubWowAddon._write_utf8")
     def test_upgrade_when_not_needed(self, mock_write):
         self.gh_wow_addon.update("/test/")
         mock_write.assert_not_called()

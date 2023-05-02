@@ -12,7 +12,9 @@ $(test_docker_build):
 
 .PHONY: test
 test: $(test_docker_build) 
+	@cp github_token test/github_token
 	@docker run -v $(PWD)/app:/app/ -v $(PWD)/test:/test/ test_wow_addon_updater
 
 clean:
 	@rm $(test_docker_build)
+	@rm test/github_token
