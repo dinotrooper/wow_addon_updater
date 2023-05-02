@@ -5,3 +5,4 @@ __pycache__
 .*
 .out/
 github_token
+app/addon_versions/
